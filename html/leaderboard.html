@@ -89,7 +89,7 @@ async function fetchPage(page) {
     const container = document.getElementById("searchBox");
     container.innerHTML = "";
 
-    const levelRef = ref(db, `Level`);
+    const levelRef = ref(db, `Players`);
     const snapshot = await get(levelRef);
     const levelsObj = snapshot.val() || {};
 
