@@ -86,25 +86,34 @@ async function getPlayerName(playerId) {
 
 // Buscar levels por página
 async function fetchPage(page) {
-    const startId = (page - 1) * levelsPerPage + 1;
-    const endId = Math.min(startId + levelsPerPage - 1, maxId);
     const container = document.getElementById("searchBox");
     container.innerHTML = "";
 
     const levelRef = ref(db, `Level`);
     const snapshot = await get(levelRef);
-    const levelsArray = snapshot.val() || [];
+    const levelsObj = snapshot.val() || {};
+
+    // Calcula IDs existentes
+    const ids = Object.keys(levelsObj).map(n => parseInt(n)).filter(n => !isNaN(n));
+    if (ids.length === 0) {
+        container.innerHTML = "<p style='color:white'>Nenhum level encontrado.</p>";
+        return false;
+    }
+    const maxId = Math.max(...ids);
+
+    const startId = (page - 1) * levelsPerPage + 1;
+    const endId = Math.min(startId + levelsPerPage - 1, maxId);
 
     let foundAny = false;
 
     for (let id = startId; id <= endId; id++) {
-        const levelData = levelsArray[id];
+        const levelData = levelsObj[id];
         if (levelData) {
             foundAny = true;
 
-            // Buscar nome do jogador
-            const playerId = levelData.playerId || levelData.creator || id; // ajuste aqui conforme seu banco
-            const playerName = await getPlayerName(playerId);
+            // Buscar nome do jogador (ou só usar playerId mesmo)
+            const playerId = levelData.playerId || levelData.creator || id;
+            const playerName = playerId; // substitua depois por await getPlayerName(playerId)
 
             // Criar div
             const levelDiv = document.createElement("div");
