@@ -1,0 +1,169 @@
+
+<meta charset="UTF-8">
+<title id="tabTitle">Level Search</title>
+<link href="../assets/css/browser.css?v=1" rel="stylesheet" type="text/css">
+<link rel="icon" href="../assets/coin.png">
+<meta id="meta-title" property="og:title" content="Level Search">
+<meta id="meta-desc" property="og:description" content="Search for Geometry Dash levels, and filter by length, difficulty, song + more!">
+<meta id="meta-image" property="og:image" content="../coin.png">
+<meta name="twitter:card" content="summary">
+
+<style>
+	/* Importa a fonte Pusab */
+	@font-face {
+	font-family: 'Pusab';
+	src: url('../assets/Pusab.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+	}
+
+	body, h2, input, div {
+	font-family: 'Pusab', sans-serif; /* aplica a fonte nos elementos */
+	font-size: 30px;
+	}
+
+	.epicbox {
+	z-index: 9999; /* quanto maior, mais na frente */
+	}
+</style>
+<body class="levelBG">
+<div id="everything" style="overflow: auto;">
+
+    <!-- Jump to Page Popup -->
+    <div class="popup" id="pageDiv" style="display:none;">
+        <div class="brownbox bounce center supercenter" style="width:60vh;height:34%;">
+            <h2 class="smaller center" style="font-size:5.5vh;margin-top:1%">Jump to Page</h2>
+            <input type="number" id="pageSelect" placeholder="1"><br>
+            <img src="../assets/ok.png" height="20%" id="pageJump" class="gdButton center closeWindow">
+            <img class="closeWindow gdButton" src="../assets/close.png" height="25%" style="position:absolute;top:-13.5%;left:-6vh">
+        </div>
+    </div>
+
+		
+	<div class="epicbox supercenter gs" style="width: 127vh; height: 87%; pointer-events: none;"></div>
+
+    <div id="searchBox" class="supercenter dragscroll"></div>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+// Configuração do Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyA5vBNS0DIZmIgCwMr_NMEZRvpdmlT-JcY",
+    authDomain: "gdpsnew-874ba.firebaseapp.com",
+    databaseURL: "https://gdpsnew-874ba-default-rtdb.firebaseio.com",
+    projectId: "gdpsnew-874ba",
+    storageBucket: "gdpsnew-874ba.appspot.com",
+    messagingSenderId: "41885010957",
+    appId: "1:41885010957:web:2f3637869d87c967c89944",
+    measurementId: "G-LEF1JXM1RY"
+};
+
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// Configurações de paginação
+let currentPage = 1;
+const levelsPerPage = 20; // quantos levels mostrar por página
+const maxId = 5000; // limite de IDs a buscar
+
+// Função para buscar levels de uma página (adaptado para array do Firebase)
+async function fetchPage(page) {
+    const startId = (page - 1) * levelsPerPage + 1;
+    const endId = Math.min(startId + levelsPerPage - 1, maxId);
+    const container = document.getElementById("searchBox");
+    container.innerHTML = ""; // limpa os levels anteriores
+
+    // Pega todo o array de Levels
+    const levelRef = ref(db, `Levels`);
+    const snapshot = await get(levelRef);
+    const levelsArray = snapshot.val() || [];
+
+    let foundAny = false;
+
+    for (let id = startId; id <= endId; id++) {
+        const levelData = levelsArray[id];
+        if (levelData) {
+            foundAny = true;
+
+            const levelDiv = document.createElement("div");
+            levelDiv.style.display = "flex";
+            levelDiv.style.alignItems = "center";
+            levelDiv.style.justifyContent = "space-between";
+            levelDiv.style.background = "#222";
+            levelDiv.style.padding = "8px 12px";
+            levelDiv.style.margin = "5px 0";
+            levelDiv.style.borderRadius = "8px";
+            levelDiv.style.color = "white";
+
+            // Dificuldade
+            const diffImg = document.createElement("img");
+            switch(levelData.difficulty) {
+                case 0: diffImg.src = "../assets/difficulties/unrated.png"; break;
+                case 1: diffImg.src = "../assets/difficulties/easy.png"; break;
+                case 2: diffImg.src = "../assets/difficulties/normal.png"; break;
+				case 3: diffImg.src = "../assets/difficulties/hard.png"; break;
+				case 4: diffImg.src = "../assets/difficulties/harder.png"; break;
+				case 5: diffImg.src = "../assets/difficulties/insane.png"; break;
+				case 6: diffImg.src = "../assets/difficulties/demon.png"; break;
+                default: diffImg.src = "../assets/difficulties/unrated.png";
+            }
+            diffImg.style.width = "30px";
+            diffImg.style.height = "30px";
+            diffImg.style.marginRight = "10px";
+            levelDiv.appendChild(diffImg);
+
+            // Nome
+            const nameSpan = document.createElement("span");
+            nameSpan.textContent = levelData.name || `Level ${id}`;
+            nameSpan.style.flex = "1";
+            nameSpan.style.textAlign = "center";
+            levelDiv.appendChild(nameSpan);
+
+            // Botão
+            const btn = document.createElement("img");
+            btn.src = "../assets/btn-check.png";
+            btn.style.width = "100px";
+            btn.style.height = "30px";
+            btn.style.cursor = "pointer";
+            levelDiv.appendChild(btn);
+
+            container.appendChild(levelDiv);
+        }
+    }
+
+    // Atualiza número da página
+    document.getElementById("pagenum")?.remove();
+    const pageNum = document.createElement("h2");
+    pageNum.id = "pagenum";
+    pageNum.className = "smaller";
+    pageNum.style.fontSize = "4.5vh";
+    pageNum.style.position = "absolute";
+    pageNum.style.top = "1%";
+    pageNum.style.right = "2%";
+    pageNum.textContent = `Page ${page}`;
+    document.body.appendChild(pageNum);
+
+    return foundAny;
+}
+
+// Botão "Jump to Page"
+document.getElementById("pageJump").addEventListener("click", async () => {
+    const page = parseInt(document.getElementById("pageSelect").value) || 1;
+    currentPage = page;
+    await fetchPage(page);
+    $("#pageDiv").hide();
+});
+
+// Inicializa primeira página
+fetchPage(currentPage);
+
+</script>
+</body>
+</html>
