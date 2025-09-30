@@ -1,5 +1,5 @@
 <meta charset="UTF-8">
-<title id="tabTitle">Level Search</title>
+<title id="tabTitle">Scoreboard Search</title>
 <link href="../assets/css/browser.css?v=1" rel="stylesheet" type="text/css">
 <link rel="icon" href="../assets/coin.png">
 <meta id="meta-title" property="og:title" content="Level Search">
@@ -140,15 +140,6 @@ async function fetchPage(page) {
             creatorSpan.style.fontSize = "14px";
             creatorSpan.style.opacity = 0.8;
             levelDiv.appendChild(creatorSpan);
-
-            // Botão
-            const btn = document.createElement("img");
-            btn.src = "../assets/btn-check.png";
-            btn.style.width = "100px";
-            btn.style.height = "30px";
-            btn.style.cursor = "pointer";
-            btn.style.alignSelf = "center";
-            levelDiv.appendChild(btn);
 
             container.appendChild(levelDiv);
         }
